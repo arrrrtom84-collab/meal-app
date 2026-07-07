@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도니도니용돈기입장</title>
+  
+  <!-- Tailwind CSS 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 구글 폰트 로드: 귀여운 필기체 느낌의 'Gamja Flower' 및 본문용 'Gowun Dodum' -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Gowun+Dodum:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 아이콘 로드 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* 전체 테마 폰트 적용 (필기체 및 둥글둥글한 느낌) */
+    body {
+      font-family: 'Gamja Flower', 'Gowun Dodum', cursive, sans-serif;
+      background-color: #FFFDF0; /* 연노랑 배경 */
+      user-select: none;
+    }
+    
+    /* 인풋 폰트는 가독성을 위해 고운돋움 병용 */
+    input, select, button {
+      font-family: 'Gowun Dodum', sans-serif;
+    }
+
+    /* 돼지 귀 테마 데코레이션 */
+    .piggy-box {
+      border: 6px solid #FFB7B2;
+      border-radius: 40px 40px 50px 50px;
+      position: relative;
+      background: #FFFFFF;
+      box-shadow: 0 10px 0 #FFB7B2;
+    }
+
+    /* 돼지 코 데코레이션 */
+    .piggy-snout {
+      width: 80px;
+      height: 55px;
+      background: #FFB7B2;
+      border-radius: 50%;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 16px;
+      box-shadow: inset -4px -4px 0px rgba(0,0,0,0.1);
+    }
+    .piggy-nostril {
+      width: 14px;
+      height: 22px;
+      background: #E58B88;
+      border-radius: 50%;
+    }
+
+    /* 마우스 포인터 뒤의 "돈 비" 효과를 위한 컨테이너 */
+    #money-rain-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .floating-money {
+      position: absolute;
+      font-size: 20px;
+      pointer-events: none;
+      animation: floatUpAndAway 1.2s forwards ease-out;
+    }
+
+    @keyframes floatUpAndAway {
+      0% {
+        transform: translate(-50%, -50%) translateY(0) scale(0.6) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) translateY(-100px) scale(1.3) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* 팡팡 터지는 클릭 파티클 효과 */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      animation: popOut 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      z-index: 10000;
+    }
+
+    @keyframes popOut {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    /* 스크롤바 커스텀 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FFFDF0;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FFB7B2;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FF9E99;
+    }
+  </style>
+</head>
+<body class="min-h-screen py-6 px-4 md:px-8 text-neutral-800 relative">
+
+  <!-- 마우스 돈 그림 따라다니는 효과용 레이어 -->
+  <div id="money-rain-container"></div>
+
+  <!-- 메인 서비스 컨테이너 -->
+  <div class="max-w-xl mx-auto">
+    
+    <!-- 돼지 얼굴 상단 장식 헤더 -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="flex space-x-12 mb-[-12px]">
+        <!-- 귀여운 돼지 귀 모양 왼쪽 오른쪽 -->
+        <div class="w-16 h-12 bg-[#FFB7B2] rounded-t-full transform -rotate-12 border-4 border-white shadow-md"></div>
+        <div class="w-16 h-12 bg-[#FFB7B2] rounded-t-full transform rotate-12 border-4 border-white shadow-md"></div>
+      </div>
+      
+      <div class="piggy-box w-full p-6 text-center z-10">
+        <!-- 돼지 코 마스코트 -->
+        <div class="piggy-snout mx-auto mb-2">
+          <div class="piggy-nostril"></div>
+          <div class="piggy-nostril"></div>
+        </div>
+        <h1 class="text-4xl font-bold text-[#E58B88] tracking-widest select-none">
+          🐷 도니도니용돈기입장 🪙
+        </h1>
+        <p class="text-lg text-amber-600 mt-1">티끌 모아 태산! 맛있는 돈 모으기 프로젝트</p>
+      </div>
+    </div>
+
+    <!-- 로딩 스피너 모달 -->
+    <div id="loadingModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+      <div class="bg-white p-6 rounded-3xl border-4 border-[#FFB7B2] text-center max-w-xs shadow-2xl">
+        <div class="animate-spin text-5xl text-[#FFB7B2] mb-3">
+          <i class="fa-solid fa-piggy-bank"></i>
+        </div>
+        <p class="text-xl font-bold text-[#E58B88]" id="loadingText">돼지 저금통을 터는 중...</p>
+      </div>
+    </div>
+
+    <!-- 1. 한달 목표 설정 & 잔액 표시 보드 -->
+    <div class="bg-[#FFF9DB] border-4 border-[#FFE066] rounded-[30px] p-5 mb-6 shadow-md relative overflow-hidden">
+      <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl text-[#FFE066]">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      
+      <!-- 목표 설정 영역 -->
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b-2 border-[#FFE066]/50 pb-4 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl text-amber-700 font-bold">🎯 한달 목표금액:</span>
+          <span id="goalDisplay" class="text-2xl font-bold text-[#E58B88]">0원</span>
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+          <input type="number" id="goalInput" placeholder="목표 입력" 
+                 class="w-full sm:w-28 px-3 py-1 text-center border-2 border-amber-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#FFE066]">
+          <button onclick="saveGoal(event)" class="effect-btn bg-[#FFE066] hover:bg-[#FCD116] text-amber-900 font-bold px-4 py-1 rounded-full text-sm transition-all shadow-sm">
+            설정
+          </button>
+        </div>
+      </div>
+
+      <!-- 실시간 잔액 표시 영역 -->
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-white/80 p-2 rounded-2xl border border-emerald-200">
+          <div class="text-sm text-emerald-600 font-bold"><i class="fa-solid fa-wallet"></i> 총 입금</div>
+          <div id="totalIn" class="text-lg md:text-xl font-bold text-emerald-700">0원</div>
+        </div>
+        <div class="bg-white/80 p-2 rounded-2xl border border-rose-200">
+          <div class="text-sm text-rose-500 font-bold"><i class="fa-solid fa-receipt"></i> 총 출금</div>
+          <div id="totalOut" class="text-lg md:text-xl font-bold text-rose-600">0원</div>
+        </div>
+        <div class="bg-white/80 p-2 rounded-2xl border border-[#FFB7B2]">
+          <div class="text-sm text-amber-800 font-bold"><i class="fa-solid fa-piggy-bank"></i> 나의 잔액</div>
+          <div id="totalBalance" class="text-lg md:text-xl font-bold text-amber-950">0원</div>
+        </div>
+      </div>
+
+      <!-- 잔액별 한줄 요약 및 비용 상태 가이드라인 -->
+      <div class="mt-4 text-center bg-white/50 py-2 px-3 rounded-xl border border-[#FFE066] text-sm">
+        <span class="font-bold text-amber-800" id="statusMessage">아직 데이터가 없어 분석할 수 없어요!</span>
+      </div>
+    </div>
+
+    <!-- 2. 입출금 내역 등록 칸 -->
+    <div class="bg-white border-4 border-[#FFB7B2] rounded-[30px] p-6 mb-6 shadow-md">
+      <h2 class="text-2xl font-bold text-[#E58B88] mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-pen-to-square"></i> <span id="formTitle">새로운 용돈 거래 기록하기</span>
+      </h2>
+      
+      <form id="transactionForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <!-- 수정용 히든 ID -->
+        <input type="hidden" id="editId" value="">
+
+        <!-- 날짜 선택 달력 -->
+        <div>
+          <label class="block text-lg font-bold text-gray-700 mb-1">📅 언제 거래했나요?</label>
+          <input type="date" id="txDate" required 
+                 class="w-full px-4 py-2 border-2 border-[#FFB7B2]/60 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FFB7B2] text-center text-lg">
+        </div>
+
+        <!-- 구분 선택 (라디오 형태의 귀여운 탭 버튼) -->
+        <div>
+          <label class="block text-lg font-bold text-gray-700 mb-1">🐷 어떤 종류의 거래인가요?</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" id="btnTypeIn" onclick="setType('입금')" 
+                    class="py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2
+                           bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100">
+              <i class="fa-solid fa-money-bill-trend-up"></i> 입금 (도니 들어옴)
+            </button>
+            <button type="button" id="btnTypeOut" onclick="setType('출금')" 
+                    class="py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2
+                           bg-white border-gray-200 text-gray-500 hover:bg-rose-50">
+              <i class="fa-solid fa-money-bill-transfer"></i> 출금 (도니 나감)
+            </button>
+          </div>
+          <input type="hidden" id="txType" value="입금">
+        </div>
+
+        <!-- 거래 내역 입력 -->
+        <div>
+          <label class="block text-lg font-bold text-gray-700 mb-1">📝 구체적으로 무엇인가요?</label>
+          <input type="text" id="txContent" required placeholder="예: 세뱃돈, 떡볶이 구매, 용돈 받음 등" 
+                 class="w-full px-4 py-2 border-2 border-[#FFB7B2]/60 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FFB7B2] text-lg">
+        </div>
+
+        <!-- 금액 입력 -->
+        <div>
+          <label class="block text-lg font-bold text-gray-700 mb-1">💰 얼마인가요?</label>
+          <div class="relative">
+            <input type="number" id="txAmount" required min="1" placeholder="금액 입력" 
+                   class="w-full pl-4 pr-12 py-2 border-2 border-[#FFB7B2]/60 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#FFB7B2] text-lg">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">원</span>
+          </div>
+        </div>
+
+        <!-- 액션 버튼들 -->
+        <div class="flex gap-3 pt-2">
+          <button type="submit" id="submitBtn"
+                  class="effect-btn flex-1 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white font-bold py-3 px-6 rounded-2xl text-xl shadow-md transition-all">
+            💰 저금통에 쏙 넣기
+          </button>
+          <button type="button" id="cancelEditBtn" onclick="resetForm()"
+                  class="effect-btn bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-5 rounded-2xl text-lg hidden transition-all">
+            취소
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. 구글 시트 데이터 연동 조회 및 CRUD 관리 영역 -->
+    <div class="bg-white border-4 border-[#FFB7B2] rounded-[30px] p-6 shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-[#E58B88] flex items-center gap-2">
+          <i class="fa-solid fa-list-ol"></i> 나의 돈 모으기 목록
+        </h2>
+        <button onclick="loadData()" class="effect-btn bg-[#FFF9DB] border-2 border-[#FFE066] text-amber-800 hover:bg-[#FFE066] px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 transition-all">
+          <i class="fa-solid fa-arrows-rotate"></i> 새로고침
+        </button>
+      </div>
+
+      <!-- 리스트 컨테이너 -->
+      <div id="txListContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+        <!-- 템플릿 형태로 렌더링될 데이터 목록 -->
+        <div class="text-center py-12 text-gray-400">
+          <i class="fa-solid fa-circle-notch animate-spin text-4xl mb-2 text-[#FFB7B2]"></i>
+          <p>구글 저금통 불러오는 중...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 알림용 메시지 커스텀 알럿 박스 -->
+  <div id="customAlert" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all duration-300 transform translate-y-24 opacity-0 z-50">
+    <span id="alertIcon" class="text-xl">🐷</span>
+    <span id="alertText" class="font-bold">성공적으로 반영되었습니다!</span>
+  </div>
+
+  <script>
+    // --- [중요!] 오프라인 미리보기 / 구글 외부 실행 환경용 시뮬레이터 제공 ---
+    if (typeof google === 'undefined') {
+      const MOCK_STORAGE_KEY_TX = 'donidoni_mock_transactions';
+      const MOCK_STORAGE_KEY_GOAL = 'donidoni_mock_goal';
+
+      // 초기 가짜 데이터 생성
+      let mockTransactions = [
+        { id: 'mock_1', date: new Date().toISOString().split('T')[0], type: '입금', content: '부모님 심부름 용돈 🐷', amount: 10000 },
+        { id: 'mock_2', date: new Date().toISOString().split('T')[0], type: '출금', content: '친구랑 먹은 떡볶이 💸', amount: 5500 }
+      ];
+      let mockGoal = 100000;
+
+      // LocalStorage에서 상태 동기화 시도
+      try {
+        const savedTx = localStorage.getItem(MOCK_STORAGE_KEY_TX);
+        if (savedTx) mockTransactions = JSON.parse(savedTx);
+        const savedGoal = localStorage.getItem(MOCK_STORAGE_KEY_GOAL);
+        if (savedGoal) mockGoal = parseInt(savedGoal, 10);
+      } catch (e) {
+        console.warn("LocalStorage 연동 제한으로 메모리 가상 환경에서 구동됩니다.");
+      }
+
+      const saveMockState = () => {
+        try {
+          localStorage.setItem(MOCK_STORAGE_KEY_TX, JSON.stringify(mockTransactions));
+          localStorage.setItem(MOCK_STORAGE_KEY_GOAL, mockGoal.toString());
+        } catch (e) {}
+      };
+
+      // google API 폴백 객체 정의
+      window.google = {
+        script: {
+          run: {
+            successHandler: null,
+            failureHandler: null,
+            withSuccessHandler(handler) {
+              this.successHandler = handler;
+              return this;
+            },
+            withFailureHandler(handler) {
+              this.failureHandler = handler;
+              return this;
+            },
+            getMonthlyGoal() {
+              setTimeout(() => {
+                if (this.successHandler) this.successHandler(mockGoal);
+              }, 400);
+            },
+            setMonthlyGoal(goalAmount) {
+              setTimeout(() => {
+                mockGoal = goalAmount;
+                saveMockState();
+                if (this.successHandler) this.successHandler(true);
+              }, 400);
+            },
+            getTransactions() {
+              setTimeout(() => {
+                if (this.successHandler) this.successHandler(mockTransactions);
+              }, 400);
+            },
+            addTransaction(item) {
+              setTimeout(() => {
+                const newItem = {
+                  id: 'MOCK_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                  date: item.date,
+                  type: item.type,
+                  content: item.content,
+                  amount: Number(item.amount)
+                };
+                mockTransactions.push(newItem);
+                mockTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                saveMockState();
+                if (this.successHandler) this.successHandler(mockTransactions);
+              }, 400);
+            },
+            updateTransaction(id, updatedItem) {
+              setTimeout(() => {
+                const index = mockTransactions.findIndex(t => t.id === id);
+                if (index !== -1) {
+                  mockTransactions[index] = {
+                    id: id,
+                    date: updatedItem.date,
+                    type: updatedItem.type,
+                    content: updatedItem.content,
+                    amount: Number(updatedItem.amount)
+                  };
+                  mockTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                  saveMockState();
+                }
+                if (this.successHandler) this.successHandler(mockTransactions);
+              }, 400);
+            },
+            deleteTransaction(id) {
+              setTimeout(() => {
+                mockTransactions = mockTransactions.filter(t => t.id !== id);
+                saveMockState();
+                if (this.successHandler) this.successHandler(mockTransactions);
+              }, 400);
+            }
+          }
+        }
+      };
+    }
+    // -------------------------------------------------------------
+
+    // 전역 변수 설정
+    let transactionsData = [];
+    let monthlyGoalAmount = 50000;
+
+    // 초기 로드 시점 정의
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. 날짜 기본값 세팅 (오늘 날짜)
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('txDate').value = today;
+
+      // 2. 구글 시트 연동 데이터 가져오기
+      initApp();
+
+      // 3. 마우스 포인트 돈 떨어짐 & 클릭 시 팡팡 터지는 이펙트 리스너 부착
+      setupInteractions();
+    });
+
+    // 앱 초기화 로직 (구글 앱스 스크립트 연결 확인)
+    function initApp() {
+      showLoading("구글 시트 연동을 확인하고 있습니다...");
+      
+      // 스크립트 속성으로부터 저장된 목표금액 조회
+      google.script.run
+        .withSuccessHandler(function(goal) {
+          monthlyGoalAmount = goal;
+          document.getElementById('goalDisplay').textContent = formatCurrency(goal);
+          document.getElementById('goalInput').value = goal;
+          
+          // 데이터 리스트 로드
+          loadData();
+        })
+        .withFailureHandler(function(err) {
+          hideLoading();
+          showToast("🚨 초기 목표금액 설정 오류!", "error");
+        })
+        .getMonthlyGoal();
+    }
+
+    // 데이터 새로고침 및 목록 렌더링
+    function loadData() {
+      showLoading("구글 시트('시트1')에서 거래 내역을 수집하고 있습니다...");
+      
+      google.script.run
+        .withSuccessHandler(function(data) {
+          transactionsData = data;
+          renderUI();
+          hideLoading();
+        })
+        .withFailureHandler(function(err) {
+          hideLoading();
+          showToast("🚨 구글 시트 데이터 로드에 실패했습니다.", "error");
+        })
+        .getTransactions();
+    }
+
+    // 원 단위 포맷팅 함수
+    function formatCurrency(val) {
+      return Number(val).toLocaleString() + '원';
+    }
+
+    // 수치 렌더링 및 목표 분석 로직
+    function renderUI() {
+      const container = document.getElementById('txListContainer');
+      
+      let totalIn = 0;
+      let totalOut = 0;
+      
+      if (transactionsData.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+            <p class="text-5xl mb-2">💸</p>
+            <p class="text-gray-500 font-bold text-lg">아직 기록된 용돈 정보가 없어요.</p>
+            <p class="text-sm text-gray-400">상단의 입력창에 첫 거래를 입력해 보세요!</p>
+          </div>
+        `;
+        document.getElementById('totalIn').textContent = '0원';
+        document.getElementById('totalOut').textContent = '0원';
+        document.getElementById('totalBalance').textContent = '0원';
+        document.getElementById('statusMessage').textContent = '아직 거래 기록이 없습니다! 저금을 시작하세요.';
+        return;
+      }
+
+      let listHtml = '';
+      
+      transactionsData.forEach(item => {
+        const isIn = item.type === '입금';
+        if (isIn) {
+          totalIn += item.amount;
+        } else {
+          totalOut += item.amount;
+        }
+
+        const typeBadge = isIn 
+          ? `<span class="bg-emerald-100 text-emerald-800 text-sm font-bold px-2.5 py-1 rounded-full border border-emerald-300">📈 입금</span>`
+          : `<span class="bg-rose-100 text-rose-800 text-sm font-bold px-2.5 py-1 rounded-full border border-rose-300">📉 출금</span>`;
+        
+        const amtText = isIn 
+          ? `<span class="text-emerald-700 font-bold">+${formatCurrency(item.amount)}</span>`
+          : `<span class="text-rose-600 font-bold">-${formatCurrency(item.amount)}</span>`;
+
+        listHtml += `
+          <div class="bg-gray-50 border-2 border-gray-100 hover:border-[#FFB7B2]/40 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 transition-all shadow-sm">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 text-sm font-bold"><i class="fa-regular fa-calendar"></i> ${item.date}</span>
+                ${typeBadge}
+              </div>
+              <div class="text-lg font-bold text-gray-800 mt-1">${escapeHtml(item.content)}</div>
+            </div>
+            
+            <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
+              <div class="text-xl font-bold">${amtText}</div>
+              <div class="flex gap-1">
+                <button onclick="startEdit('${item.id}', '${item.date}', '${item.type}', '${item.content}', ${item.amount}, event)" 
+                        class="effect-btn p-1.5 px-3 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold transition-all">
+                  <i class="fa-solid fa-pen"></i> 수정
+                </button>
+                <button onclick="deleteItem('${item.id}', event)" 
+                        class="effect-btn p-1.5 px-3 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold transition-all">
+                  <i class="fa-solid fa-trash"></i> 삭제
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = listHtml;
+
+      // 상단 잔액 카드 적용
+      const balance = totalIn - totalOut;
+      document.getElementById('totalIn').textContent = formatCurrency(totalIn);
+      document.getElementById('totalOut').textContent = formatCurrency(totalOut);
+      document.getElementById('totalBalance').textContent = formatCurrency(balance);
+
+      // 목표금액 대비 소비 진단 상태 계산
+      analyzeStatus(balance);
+    }
+
+    // 목표금액 분석 안내 메시지 도출
+    function analyzeStatus(balance) {
+      const msgElem = document.getElementById('statusMessage');
+      if (balance >= monthlyGoalAmount) {
+        msgElem.innerHTML = `🎉 대단해요! 목표 금액인 <b class="text-[#E58B88]">${formatCurrency(monthlyGoalAmount)}</b>을 돌파했습니다! 현재 보너스 <b>+${formatCurrency(balance - monthlyGoalAmount)}</b> 달성 중!`;
+        msgElem.className = "mt-4 text-center bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-300 text-sm text-emerald-800";
+      } else {
+        const diff = monthlyGoalAmount - balance;
+        msgElem.innerHTML = `🐷 이번 달 목표 달성까지 <b class="text-[#E58B88]">${formatCurrency(diff)}</b> 남았습니다. 남은 기간 더 아껴볼까요? 파이팅!`;
+        msgElem.className = "mt-4 text-center bg-amber-50 py-2 px-3 rounded-xl border border-amber-300 text-sm text-amber-800";
+      }
+    }
+
+    // 입금/출금 타입 수동 선택 세팅
+    function setType(type) {
+      document.getElementById('txType').value = type;
+      const btnIn = document.getElementById('btnTypeIn');
+      const btnOut = document.getElementById('btnTypeOut');
+
+      if (type === '입금') {
+        btnIn.className = "py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2 bg-emerald-50 border-emerald-300 text-emerald-700";
+        btnOut.className = "py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2 bg-white border-gray-200 text-gray-500 hover:bg-rose-50";
+      } else {
+        btnIn.className = "py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2 bg-white border-gray-200 text-gray-500 hover:bg-emerald-50";
+        btnOut.className = "py-2.5 rounded-2xl font-bold text-lg border-2 transition-all flex items-center justify-center gap-2 bg-rose-50 border-rose-300 text-rose-700";
+      }
+    }
+
+    // 폼 등록 및 수정 트리거
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('editId').value;
+      const date = document.getElementById('txDate').value;
+      const type = document.getElementById('txType').value;
+      const content = document.getElementById('txContent').value.trim();
+      const amount = parseInt(document.getElementById('txAmount').value, 10);
+
+      if (!date || !content || isNaN(amount) || amount <= 0) {
+        showToast("⚠️ 정확한 양식값을 모두 채워주세요!", "error");
+        return;
+      }
+
+      const itemPayload = { date, type, content, amount };
+
+      if (id) {
+        // 수정 모드
+        showLoading("구글 시트의 내용을 고치는 중...");
+        google.script.run
+          .withSuccessHandler(function(updatedData) {
+            transactionsData = updatedData;
+            renderUI();
+            resetForm();
+            hideLoading();
+            showToast("✏️ 내역이 정상적으로 수정되었습니다!");
+          })
+          .withFailureHandler(function() {
+            hideLoading();
+            showToast("🚨 수정 처리에 실패했습니다.", "error");
+          })
+          .updateTransaction(id, itemPayload);
+      } else {
+        // 추가 모드
+        showLoading("구글 시트에 내역을 기록하는 중...");
+        google.script.run
+          .withSuccessHandler(function(updatedData) {
+            transactionsData = updatedData;
+            renderUI();
+            resetForm();
+            hideLoading();
+            showToast("👛 저금통에 소중한 내역이 등록되었습니다!");
+          })
+          .withFailureHandler(function() {
+            hideLoading();
+            showToast("🚨 추가 처리에 실패했습니다.", "error");
+          })
+          .addTransaction(itemPayload);
+      }
+    }
+
+    // 수정 모드 활성화 진입
+    function startEdit(id, date, type, content, amount, e) {
+      // 스크롤 이동
+      document.getElementById('transactionForm').scrollIntoView({ behavior: 'smooth' });
+      
+      document.getElementById('formTitle').textContent = "기존 용돈 기록 수정하기";
+      document.getElementById('editId').value = id;
+      document.getElementById('txDate').value = date;
+      document.getElementById('txContent').value = content;
+      document.getElementById('txAmount').value = amount;
+      setType(type);
+
+      // 취소 버튼 노출 및 등록 버튼명 변환
+      document.getElementById('submitBtn').innerHTML = "🛠️ 안전하게 수정하기";
+      document.getElementById('submitBtn').className = "effect-btn flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-2xl text-xl shadow-md transition-all";
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+    }
+
+    // 수정모드에서 돌아오기 (폼 비우기)
+    function resetForm() {
+      document.getElementById('formTitle').textContent = "새로운 용돈 거래 기록하기";
+      document.getElementById('editId').value = "";
+      document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('txContent').value = "";
+      document.getElementById('txAmount').value = "";
+      setType('입금');
+
+      document.getElementById('submitBtn').innerHTML = "💰 저금통에 쏙 넣기";
+      document.getElementById('submitBtn').className = "effect-btn flex-1 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white font-bold py-3 px-6 rounded-2xl text-xl shadow-md transition-all";
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    // 데이터 삭제 처리
+    function deleteItem(id, e) {
+      if (!confirm("정말 이 내역을 삭제할까요?")) {
+        return;
+      }
+      
+      showLoading("구글 시트에서 안전하게 지우는 중...");
+      google.script.run
+        .withSuccessHandler(function(updatedData) {
+          transactionsData = updatedData;
+          renderUI();
+          hideLoading();
+          showToast("🗑️ 선택하신 기록이 완전히 지워졌습니다!");
+        })
+        .withFailureHandler(function() {
+          hideLoading();
+          showToast("🚨 삭제 처리에 실패했습니다.", "error");
+        })
+        .deleteTransaction(id);
+    }
+
+    // 목표 금액 저장 스크립트
+    function saveGoal(e) {
+      const gInput = document.getElementById('goalInput').value;
+      const parsed = parseInt(gInput, 10);
+      if (isNaN(parsed) || parsed < 0) {
+        showToast("⚠️ 정확한 목표 금액 숫자를 입력하세요!", "error");
+        return;
+      }
+
+      showLoading("새로운 한달 목표 금액을 설정하고 있어요...");
+      google.script.run
+        .withSuccessHandler(function() {
+          monthlyGoalAmount = parsed;
+          document.getElementById('goalDisplay').textContent = formatCurrency(parsed);
+          renderUI();
+          hideLoading();
+          showToast("🎯 이번 달 목표 금액을 새롭게 다짐했습니다!");
+        })
+        .withFailureHandler(function() {
+          hideLoading();
+          showToast("🚨 목표금액 설정 저장을 실패했습니다.", "error");
+        })
+        .setMonthlyGoal(parsed);
+    }
+
+    // HTML 태그 탈옥 방지 안전 변환용 함수
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // 로딩 토글 유틸리티
+    function showLoading(msg) {
+      document.getElementById('loadingText').textContent = msg || "돼지 저금통 돌리는 중...";
+      document.getElementById('loadingModal').classList.remove('hidden');
+    }
+    function hideLoading() {
+      document.getElementById('loadingModal').classList.add('hidden');
+    }
+
+    // 토스트 알럿 노출 유틸리티
+    function showToast(text, type = "success") {
+      const toast = document.getElementById('customAlert');
+      const icon = document.getElementById('alertIcon');
+      const label = document.getElementById('alertText');
+
+      if (type === "success") {
+        icon.textContent = "🐷";
+        toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all duration-300 transform z-50";
+      } else {
+        icon.textContent = "🚨";
+        toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 transition-all duration-300 transform z-50";
+      }
+
+      label.textContent = text;
+      toast.style.opacity = "1";
+      toast.style.transform = "translate(-50%, 0)";
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translate(-50%, 100px)";
+      }, 3000);
+    }
+
+    // 인터랙티브 이펙트 함수 세팅 (마우스 돈 효과 & 버튼 팡팡 피드백)
+    function setupInteractions() {
+      const moneySymbols = ['🪙', '💵', '💰', '🐷', '✨'];
+      const rainContainer = document.getElementById('money-rain-container');
+
+      // 마우스 움직일 때마다 '돈 그림' 잔상 생성
+      let lastMoveTime = 0;
+      document.addEventListener('mousemove', (e) => {
+        const now = Date.now();
+        // 성능 과부하 방지를 위한 스로틀링 (80ms 마다 1개)
+        if (now - lastMoveTime < 80) return;
+        lastMoveTime = now;
+
+        const moneyEl = document.createElement('div');
+        moneyEl.className = 'floating-money';
+        moneyEl.textContent = moneySymbols[Math.floor(Math.random() * moneySymbols.length)];
+        moneyEl.style.left = e.clientX + 'px';
+        moneyEl.style.top = e.clientY + 'px';
+        
+        rainContainer.appendChild(moneyEl);
+
+        // 1.2초 뒤 가비지 컬렉션 처리
+        setTimeout(() => {
+          moneyEl.remove();
+        }, 1200);
+      });
+
+      // 버튼을 누르면 사방으로 팡팡 터지는 파티클 효과 구현
+      document.addEventListener('click', (e) => {
+        // 클래스명이나 상위에 effect-btn이 있는 대상에서만 실행
+        const target = e.target.closest('.effect-btn') || e.target.closest('button');
+        if (!target) return;
+
+        const colors = ['#FFB7B2', '#FFE066', '#FF9E99', '#4ADE80', '#FCD116'];
+        
+        for (let i = 0; i < 12; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          
+          // 랜덤한 색상 및 사이즈 배정
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          const size = Math.floor(Math.random() * 8) + 6;
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          particle.style.backgroundColor = color;
+          
+          // 현재 마우스 클릭 위치
+          particle.style.left = e.clientX + 'px';
+          particle.style.top = e.clientY + 'px';
+          
+          // 방사형으로 튕겨 나갈 랜덤 좌표 계산
+          const angle = Math.random() * Math.PI * 2;
+          const velocity = Math.random() * 80 + 40;
+          const tx = Math.cos(angle) * velocity;
+          const ty = Math.sin(angle) * velocity;
+          
+          particle.style.setProperty('--tx', tx + 'px');
+          particle.style.setProperty('--ty', ty + 'px');
+          
+          document.body.appendChild(particle);
+          
+          setTimeout(() => {
+            particle.remove();
+          }, 600);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
